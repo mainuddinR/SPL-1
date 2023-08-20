@@ -130,6 +130,7 @@ void beginSession()
     t1=time(NULL);
     char str1[26],str2[26];
     int a=0,b=0;
+    int flog1=0,flog2=0;
     printf("\n\t\t\t=================\n");
     printf("\n\t\t\tTyping Test Start\n");
     printf("\n\t\t\t=================\n");
@@ -155,10 +156,13 @@ void beginSession()
                     str1[b]='\0';
                     b=0;
                     a=0;
-                int x=Edit_Distance(str1,str2,strlen(str2),strlen(str1));
-                if(x!=0){
-                    printf("{wrong} ");
-                }
+                    int x=Edit_Distance(str1,str2,strlen(str2),strlen(str1));
+                    if(x!=0)
+                    {
+                        red();
+                        printf("{wrong} ");//kono vule kisu type korle wrong and seta red wrong a dekhabe .
+                        reset();
+                    }
 
                 }
                 else
@@ -191,6 +195,7 @@ void beginSession()
                 {
                     str2[a]='\0';
                     a=0;
+                    flog1=1;
                 }
                 else
                 {
@@ -204,16 +209,23 @@ void beginSession()
                     //no change;//"the" poriborte "theeeeee" type korle worng dekhano.orThad 3 character poriborte besi character type korle.
                     str1[b]='\0';
                     b=0;
+                    flog2=1;
                 }
-                else if(c==32&&text[i]!=32){
+                else if(c==32&&text[i]!=32)
+                {
                     //no change;
                     str1[b]=text[i];
                     b++;
-                    while(text[i]!=32){//handle EX:"quick" poriborte "qu","quk",orThad 5 character kom type korle wrong dekhano.
+                    while(text[i]!=32) //handle EX:"quick" poriborte "qu","quk",orThad 5 character kom type korle wrong dekhano.
+                    {
                         i++;
                     }
-                    if(text[i]==32) {
-                            i++;
+                    if(text[i]==32)
+                    {
+                        i++;
+                        str1[b]='\0';
+                        b=0;
+                        flog2=1;
                     }
                 }
                 else
@@ -228,6 +240,18 @@ void beginSession()
                 if(c==32||c=='\t'||c=='\r')
                 {
                     nwords++;
+                }
+                if(flog1==1&&flog2==1) //"dog" poriborte jodi "dg" type kori thkhon wrong dekhabe arthad kom character type korle wrong dekhabe
+                {
+                    int y=Edit_Distance(str1,str2,strlen(str2),strlen(str1));
+                    if(y!=0)
+                    {
+                        red();
+                        printf("{wrong} ");
+                        reset();
+                    }
+                    flog1=0;
+                    flog2=0;
                 }
 
             }
@@ -281,16 +305,29 @@ int Edit_Distance(char str1[],char str2[],int n,int m)
 }
 int minv(int a,int b,int c)
 {
-    if(a<=b&&a<=c){
+    if(a<=b&&a<=c)
+    {
         return a;
     }
-    else if(b<=a&&b<=c){
+    else if(b<=a&&b<=c)
+    {
         return b;
     }
-    else if(c<=a&&c<=b){
+    else if(c<=a&&c<=b)
+    {
         return c;
     }
 }
+
+void red ()
+{
+  printf("\033[1;31m");
+}
+void reset ()
+{
+  printf("\033[0m");
+}
+
 int main()
 {
     fileload();
