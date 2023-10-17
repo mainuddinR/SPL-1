@@ -3,8 +3,8 @@
 #include<time.h>
 #include<string.h>
 #include<stdlib.h>
-#include "headerFileAll.h"
-#include "Typing Tutor.h"
+#include "TdfVarTTP.h"
+#include "TTP.h"
 int main()
 {
     fileload();
