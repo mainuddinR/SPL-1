@@ -1,8 +1,10 @@
 FILE *fllist; //lesson number and name list
 FILE *flesson; 
 FILE *FileUserList; //user list
+FILE *userAloneFile;
 int nusers;
 lesson cl;
+user currentUser;
 char *text;
 void fileload()
 {
@@ -413,4 +415,20 @@ void userFileLoad()
         fclose(fstat);
     }
 
+}
+
+void createUser()
+{
+    char userFileName[100+3+1];
+    fseek(FileUserList,0,SEEK_SET);
+    nusers++;
+    fwrite(&nusers,sizeof(int),1,FileUserList);//Update no.of user
+    printf("\nEnter your name :");
+    scanf("%s",currentUser.name);
+    sprintf(userFileName,"%s.dat",currentUser.name);
+    userAloneFile=fopen(userFileName,"wb");//create file
+    fclose(userAloneFile);
+    userAloneFile=fopen(userFileName,"r+b");
+    printf("\n\n\n\nUser file created\n press any key to continue...");
+	getch();
 }

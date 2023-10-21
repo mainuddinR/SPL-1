@@ -2,7 +2,7 @@
 #include<conio.h>
 #include<stdlib.h>
 #include<time.h>
-#include<windows.h>
+//#include<windows.h>
 
 #define N 8
 #define page 300
@@ -110,7 +110,7 @@ int listLesson(void)
     printf("\a");
     return 0;
 }
-void sreenShowLesson()
+void screenShowLesson()
 {
     int i=0;
     printf("%s\n",cl.title);
@@ -341,7 +341,7 @@ void reset ()
 {
   printf("\033[0m");
 }
-void setCursorStyle(int style)
+/*void setCursorStyle(int style)
 {
     CURSOLE_CURSOR_INFO cursorInfo;
     switch(style)
@@ -400,11 +400,12 @@ int box(int x,int y,int height,int width,int fc,int bc)
     width+=2;
     height+=3;
 }
+*/
 int main()
 {
     fileload();
     listLesson();
-    sreenShowLesson();
+    screenShowLesson();
     beginSession();
     return 0;
 }
