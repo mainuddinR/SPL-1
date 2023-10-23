@@ -5,7 +5,10 @@ FILE *userAloneFile;
 int nusers;
 lesson cl;
 user currentUser;
+temp pass ;
 char *text;
+int count=0;
+
 void fileload()
 {
     lesson l;
@@ -315,7 +318,121 @@ void beginSession()
     printf("\nTime:%ds",time);
     printf("\nMistake:%d",mistakes);
     printf("\nAccuracy:%f\n",accuracy);
-    printf("2word per minutes:%d\n",wpm);
+    printf("word per minutes:%d\n",wpm);
+}
+
+void createUser()
+{
+    char userFileName[20];
+   // char pass[20];
+    fseek(FileUserList,0,SEEK_SET);
+    nusers++;
+    fwrite(&nusers,sizeof(int),1,FileUserList);//Update no.of user
+
+    printf("\nEnter your name :\n");
+    scanf("%s",currentUser.name);
+
+    printf("Enter your username :\n");
+    scanf("%s",currentUser.userID);
+    getchar();
+
+    printf("Enter your Password(More than 8 Characters) :\n");
+    gets(pass.flag);
+
+    fseek(FileUserList,0L,SEEK_END); //0L meanas No offset orthad END thekei suru
+    fwrite(&currentUser,sizeof(user),1,FileUserList);// UserID and name add file
+
+    sprintf(userFileName,"%s.dat",currentUser.userID);
+    userAloneFile=fopen(userFileName,"wb");//create file
+    //fclose(userAloneFile);
+   // userAloneFile=fopen(userFileName,"r+b");
+    fseek(userAloneFile,0L,SEEK_SET);
+    fwrite(&pass,sizeof(temp),1,userAloneFile);
+    fclose(userAloneFile);
+    userAloneFile=fopen(userFileName,"r+b");
+    printf("\n\n\n\nUser file created\n press any key to continue...");
+	getch();
+}
+
+void login()
+{
+    char us[20];
+    char password[10];
+    printf("USER ID:\n");
+    scanf("%s",currentUser.userID);
+    getchar();
+    sprintf(us,"%s.dat",currentUser.userID);
+   // strcpy(us,currentUser.userID);
+    if( (userAloneFile = fopen(us,"r+b")) == NULL )	/*opened for the beginSession() to write session details*/
+	{
+		printf("\n\nInvalid UserID");
+		printf("\npress any key to continue...");
+		getch();
+		return;
+	}
+    printf("Password:\n");
+    //gets(pass.name);
+    gets(password);
+    char rPass[20];
+    fread(&rPass,sizeof(temp),1,userAloneFile);
+    if((strcmp(rPass,password))==0)
+    {
+        printf("Login Success\n");
+        printf("press any key to continue...\n");
+		getch();
+		return;
+    }
+    else{
+        printf("wrong Password\n");
+        printf("try Again..\n");
+        count++;
+        if(count==3) return;
+        login();
+    }
+
+
+   /* while(1)
+    {
+         gets(pass);
+         if(strlen(pass)>=8){
+            break;
+         }
+         printf("pleace use 8+ character")
+    }*/
+   
+    return ;
+}
+int lisrUser()
+{
+    int i=0;
+    char userfilename[100];
+    if(nusers==0){
+        printf("\n\nNo users exist...");
+        printf("\npress any key to continue..");
+        getch();
+        return -1;
+    }
+    printf("\nNumber of users: %d",nusers);
+    fseek(FileUserList,sizeof(int),SEEK_SET);
+    for(i=1;i<=nusers;i++)
+    {
+        fread(&currentUser,sizeof(user),1,FileUserList);
+        printf("\n(%d) %s",i,currentUser.name);
+    }
+    printf("\nSelect a user (please type the name): ");
+	scanf(" %s",currentUser.name);
+	sprintf(userfilename,"%s.dat",currentUser.name);
+    if((userAloneFile=fopen(userfilename,"r+b"))==NULL)
+    {
+        printf("\n\nInvalid filename\n");
+		printf("press any key to continue...\n");
+		getch();
+		return -1;
+    }
+    printf("\nSuccess!!\n");
+    printf(" press any key to continue...");
+	getch();
+	return 0;
 }
 
 void userSelectMenu()
@@ -332,10 +449,10 @@ void userSelectMenu()
      scanf("%d", &option);
      switch(option){
         case 1:
-        //login function
+        login();
         break;
         case 2:
-        //sing Up
+        createUser();
         break;
         default:
         printf("choice mismatch, Again try!!");
@@ -415,20 +532,4 @@ void userFileLoad()
         fclose(fstat);
     }
 
-}
-
-void createUser()
-{
-    char userFileName[100+3+1];
-    fseek(FileUserList,0,SEEK_SET);
-    nusers++;
-    fwrite(&nusers,sizeof(int),1,FileUserList);//Update no.of user
-    printf("\nEnter your name :");
-    scanf("%s",currentUser.name);
-    sprintf(userFileName,"%s.dat",currentUser.name);
-    userAloneFile=fopen(userFileName,"wb");//create file
-    fclose(userAloneFile);
-    userAloneFile=fopen(userFileName,"r+b");
-    printf("\n\n\n\nUser file created\n press any key to continue...");
-	getch();
 }
