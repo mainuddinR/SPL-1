@@ -5,10 +5,15 @@ FILE *userAloneFile;
 int nusers;
 lesson cl;
 user currentUser;
+session cp; //current persion stat add;
 temp pass ;
 char *text;
 int count=0;
-
+void initial()
+{
+    cp.accuracy=0.0;
+    cp.wpm=0;
+}
 void fileload()
 {
     lesson l;
@@ -319,6 +324,74 @@ void beginSession()
     printf("\nMistake:%d",mistakes);
     printf("\nAccuracy:%f\n",accuracy);
     printf("word per minutes:%d\n",wpm);
+     struct tm *date;
+    date=localtime(&t1); // history jonno start time 
+    printf("Start time [hh:mm:ss]=[%02d:%02d:%02d]",date->tm_hour,date->tm_min,date->tm_sec);
+    printf("\n%s, %s %2d, %d",day[date->tm_wday],month[date->tm_mon],date->tm_mday,date->tm_year+1900);
+    cp.u=currentUser;
+    cp.accuracy=accuracy;
+    cp.wpm=wpm;
+   // cp.datTime=*date;
+}
+
+void login()
+{
+    char us[20];
+    char password[20];
+    printf("USER ID:\n");
+    scanf("%s",currentUser.userID);
+    getchar();
+    sprintf(us,"%s.dat",currentUser.userID);
+   // strcpy(us,currentUser.userID);
+    if( (userAloneFile = fopen(us,"r+b")) == NULL )	/*opened for the beginSession() to write session details*/
+	{
+		printf("\n\nInvalid UserID");
+		printf("\npress any key to continue...");
+		getch();
+		return;
+	}
+    printf("Password:\n");
+    //gets(pass.name);
+	int i=0; 
+	do{ 
+		password[i]=getch(); 
+        //scan("%c",&password[i]);
+		if(password[i]!='\r'){ 
+			printf("*"); 
+		} 
+		i++; 
+	}while(password[i-1]!='\r'); 
+    password[i-1]='\0';
+    char rPass[20];
+    fread(&rPass,sizeof(temp),1,userAloneFile);
+    if((strcmp(rPass,password))==0)
+    {
+        printf("\nLogin Success..\n");
+        sleep(1);
+        mainmenu();
+       // printf("press any key to continue...\n");
+		// getch();
+		return;
+    }
+    else{
+        printf("wrong Password\n");
+        printf("try Again..\n");
+        count++;
+        if(count==3) return;
+        login();
+    }
+
+
+   /* while(1)
+    {
+         gets(pass);
+         if(strlen(pass)>=8){
+            break;
+         }
+         printf("pleace use 8+ character")
+    }*/
+   
+    return ;
 }
 
 void createUser()
@@ -350,58 +423,13 @@ void createUser()
     fwrite(&pass,sizeof(temp),1,userAloneFile);
     fclose(userAloneFile);
     userAloneFile=fopen(userFileName,"r+b");
-    printf("\n\n\n\nUser file created\n press any key to continue...");
-	getch();
+    //printf("\n\n\n\nUser file created\n press any key to continue...");
+	//getch();
+    printf("\n\n sign Up complete!\n\n");
+    sleep(1);
+     login();///aber login kore add hoibe
 }
 
-void login()
-{
-    char us[20];
-    char password[10];
-    printf("USER ID:\n");
-    scanf("%s",currentUser.userID);
-    getchar();
-    sprintf(us,"%s.dat",currentUser.userID);
-   // strcpy(us,currentUser.userID);
-    if( (userAloneFile = fopen(us,"r+b")) == NULL )	/*opened for the beginSession() to write session details*/
-	{
-		printf("\n\nInvalid UserID");
-		printf("\npress any key to continue...");
-		getch();
-		return;
-	}
-    printf("Password:\n");
-    //gets(pass.name);
-    gets(password);
-    char rPass[20];
-    fread(&rPass,sizeof(temp),1,userAloneFile);
-    if((strcmp(rPass,password))==0)
-    {
-        printf("Login Success\n");
-        printf("press any key to continue...\n");
-		getch();
-		return;
-    }
-    else{
-        printf("wrong Password\n");
-        printf("try Again..\n");
-        count++;
-        if(count==3) return;
-        login();
-    }
-
-
-   /* while(1)
-    {
-         gets(pass);
-         if(strlen(pass)>=8){
-            break;
-         }
-         printf("pleace use 8+ character")
-    }*/
-   
-    return ;
-}
 int lisrUser()
 {
     int i=0;
@@ -468,7 +496,7 @@ void mainmenu()
 
         printf("Welcome to the Typing Tutor!\n");
         printf("Main Menu:\n");
-        printf("1. Select User\n");
+        printf("1. Typing Test\n");
         printf("2. Statistics\n");
         printf("3. View User Records\n");
         printf("4. About\n");
@@ -480,7 +508,9 @@ void mainmenu()
 
         switch (choice) {
             case 1:
-                userSelectMenu();
+                listLesson();
+                sreenShowLesson();
+                beginSession();
                 break;
             case 2:
                // viewInstructions();
@@ -498,7 +528,7 @@ void mainmenu()
                 printf("Invalid choice. Please select a valid option.\n");
                 break;
         }
-        if(choice==5)
+        if(choice==5||choice==1)
         {
              break;
         }

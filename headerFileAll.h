@@ -38,7 +38,8 @@ typedef struct
     unsigned int wpm;
     double accuracy;
 }session;
-
+char *day[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
+char *month[12]={"January","February","March","April","May","June","July","August","September","October","November","December"};
 
 
 void fileload();

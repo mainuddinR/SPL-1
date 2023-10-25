@@ -3,18 +3,19 @@
 #include<time.h>
 #include<string.h>
 #include<stdlib.h>
-//#include "welcome.c"
+#include "welcome.c"
 #include "headerFileAll.h"
 #include "TypingTutor.h"
 
 int main()
 {
-    //welcome();
-    mainmenu();
-    fileload();
-    userFileLoad();
-    listLesson();
-    sreenShowLesson();
-    beginSession();
+     welcome();
+    //mainmenu();
+    //fileload();
+    //userFileLoad();
+    //listLesson();
+    //sreenShowLesson();
+    //beginSession();
+    userSelectMenu();
     return 0;
 }
