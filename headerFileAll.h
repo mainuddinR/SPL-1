@@ -17,6 +17,13 @@ typedef struct
     char flag[20];
 }temp;
 
+typedef struct 
+{
+    char userID[20];
+    double score;
+}HighScore;
+
+
 
 /*struct tm {
    int tm_sec;         // seconds,  range 0 to 59          
@@ -50,3 +57,4 @@ void beginSession();
 void userSelectMenu();
 void userFileLoad();
 void mainmenu();
+int listUser();

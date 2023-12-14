@@ -2,11 +2,13 @@ FILE *fllist; //lesson number and name list
 FILE *flesson; 
 FILE *FileUserList; //user list
 FILE *userAloneFile;
+FILE *fscore;
 int nusers;
 lesson cl;
 user currentUser;
 session cp; //current persion stat add;
 temp pass ;
+HighScore highScore;
 char *text;
 int count=0;
 void initial()
@@ -16,6 +18,13 @@ void initial()
 }
 void fileload()
 {
+
+    if((fscore=fopen("allScore.dat","wb+"))==NULL)//if fine does not exist
+    {
+        printf("Score file not open\n");
+
+    }
+
     lesson l;
     int n=4,i;
     fllist=fopen("ListOfLesson.dat","wb");
@@ -151,15 +160,6 @@ int Edit_Distance(char str1[],char str2[],int n,int m)
     } ///n-1,m-1 replace;
     ///n,m-1 insert;
     ///n-1,m  deleted;
-}
-
-void red ()
-{
-  printf("\033[1;31m");
-}
-void reset ()
-{
-  printf("\033[0m");
 }
 
 void beginSession()
@@ -324,15 +324,126 @@ void beginSession()
     printf("\nMistake:%d",mistakes);
     printf("\nAccuracy:%f\n",accuracy);
     printf("word per minutes:%d\n",wpm);
+
      struct tm *date;
     date=localtime(&t1); // history jonno start time 
     printf("Start time [hh:mm:ss]=[%02d:%02d:%02d]",date->tm_hour,date->tm_min,date->tm_sec);
     printf("\n%s, %s %2d, %d",day[date->tm_wday],month[date->tm_mon],date->tm_mday,date->tm_year+1900);
+    // cp.u=currentUser;
+    // cp.accuracy=accuracy;
+    // cp.wpm=wpm;
+    // cp.datTime=*date;
+    // cp.lessonName=cl;
+
+    //file stat load 
+    char fileName[20];
+    sprintf(fileName,"%s.dat",cp.u.userID);
+
+    session flag1;
+    userAloneFile=fopen(fileName,"rb");
+
+    temp pass;
+    fread(&pass,sizeof(temp),1,userAloneFile);
+    fread(&flag1,sizeof(session),1,userAloneFile);
+
     cp.u=currentUser;
-    cp.accuracy=accuracy;
-    cp.wpm=wpm;
-   // cp.datTime=*date;
+    cp.accuracy=((accuracy+flag1.accuracy)/2);
+    if(flag1.wpm==0){
+        cp.wpm=wpm;
+    }
+    else{
+        cp.wpm=((wpm+flag1.wpm)/2);
+    }
+    cp.datTime=*date;
+    cp.lessonName=cl;
+
+    userAloneFile=fopen(fileName,"wb");
+    //fseek(userAloneFile,0,SEEK_END);
+     fwrite(&pass,sizeof(temp),1,userAloneFile);
+     fwrite(&cp,sizeof(session),1,userAloneFile);
+
+    fclose(userAloneFile);
+
+    strcpy(highScore.userID,currentUser.userID);
+    highScore.score=cp.accuracy*cp.wpm;
+
+    fseek(fscore,0L,SEEK_END) ;
+    fwrite(&highScore,sizeof(HighScore),1,fscore);
+    if(fscore==NULL) {
+         printf("Score File read complete %d",i);
+     }
+
 }
+
+void viewHighScores()
+{
+
+    //fclose(fscore);
+    //fscore=fopen("allScore.dat","rb");
+    fseek(fscore,0,SEEK_SET);
+
+     HighScore HS[100] ;
+     HighScore tm;
+     int i=0;
+
+    while(1){
+        if((fread(&HS[i],sizeof(HighScore),1,fscore))==NULL)
+        {
+            break;
+        }
+
+        i++;
+    }
+     if(fscore==NULL) {
+         printf("Score File read complete %d\n",i);
+     }
+
+   // fclose(fscore);
+   // double max=HS[0].score;
+    for(int j=0;j<=i;j++)
+    {
+        for(int k=0;k<j;k++)
+        {
+            if(HS[j].score<HS[k].score)
+            {
+                tm=HS[j];
+                HS[j]=HS[k];
+                HS[k]=tm;
+            }
+        }
+    }
+
+    printf("User ID       Score\n");
+    for(int j=0;j<=i;j++)
+    {
+        printf("%.20s    %lf \n",HS[j].userID,HS[i].score);
+    }
+    sleep(10);
+}
+
+void ShowStaistics(){
+    temp pass;
+    session flag1;
+    char fileName[20];
+    sprintf(fileName,"%s.dat",currentUser.userID);
+
+    userAloneFile=fopen(fileName,"rb");
+
+    fread(&pass,sizeof(temp),1,userAloneFile);
+    fread(&flag1,sizeof(session),1,userAloneFile);
+
+    printf("\nUser Name: %s",flag1.u.name);
+    //printf("\n\rLesson title: %s",flag1.lessonName.title);
+    printf("\n\rGross Speed : %d WPM",flag1.wpm);
+    printf("\n\rAccuracy : %.0f%%",flag1.accuracy);
+    printf("\n\rScore: %.0f",flag1.accuracy*flag1.wpm);
+    printf("\n\r%s,%s %2d, %d",day[flag1.datTime.tm_wday],month[flag1.datTime.tm_mon],flag1.datTime.tm_mday,flag1.datTime.tm_year+1900);
+    printf("\n\rstart time [hh:mm:ss] = [%02d:%02d:%02d]\n\n",flag1.datTime.tm_hour,flag1.datTime.tm_min,flag1.datTime.tm_sec);
+
+    sleep(20);
+
+}
+
 
 void login()
 {
@@ -341,6 +452,15 @@ void login()
     printf("USER ID:\n");
     scanf("%s",currentUser.userID);
     getchar();
+    fseek(FileUserList,0,SEEK_SET);
+    int NoU;
+    fread(&NoU,sizeof(int),1,FileUserList);
+    user aUser[NoU];
+    for(int i=0;i<NoU;i++)
+    {
+        fread(&aUser[i],sizeof(user),1,FileUserList);
+    }
+
     sprintf(us,"%s.dat",currentUser.userID);
    // strcpy(us,currentUser.userID);
     if( (userAloneFile = fopen(us,"r+b")) == NULL )	/*opened for the beginSession() to write session details*/
@@ -355,7 +475,7 @@ void login()
 	int i=0; 
 	do{ 
 		password[i]=getch(); 
-        //scan("%c",&password[i]);
+
 		if(password[i]!='\r'){ 
 			printf("*"); 
 		} 
@@ -367,6 +487,14 @@ void login()
     if((strcmp(rPass,password))==0)
     {
         printf("\nLogin Success..\n");
+
+        for(int j=0;j<NoU;j++)//currentUser Name include
+        {
+            if((strcmp(currentUser.userID,aUser[j].userID))==0){
+                strcpy(currentUser.name,aUser[j].name);
+            }
+        }
+        cp.u=currentUser;
         sleep(1);
         mainmenu();
        // printf("press any key to continue...\n");
@@ -374,13 +502,12 @@ void login()
 		return;
     }
     else{
-        printf("wrong Password\n");
+        printf("\nwrong Password\n");
         printf("try Again..\n");
         count++;
         if(count==3) return;
         login();
     }
-
 
    /* while(1)
     {
@@ -397,13 +524,26 @@ void login()
 void createUser()
 {
     char userFileName[20];
+   // FileUserList=fopen("userList.dat","wb");
    // char pass[20];
     fseek(FileUserList,0,SEEK_SET);
     nusers++;
     fwrite(&nusers,sizeof(int),1,FileUserList);//Update no.of user
 
+    fseek(FileUserList,0,SEEK_SET);
+    int NoU;
+    fread(&NoU,sizeof(int),1,FileUserList);
+    user aUser[NoU];
+    for(int i=0;i<NoU;i++)
+    {
+        fread(&aUser[i],sizeof(user),1,FileUserList);
+    }
+
+    again:
+    
     printf("\nEnter your name :\n");
-    scanf("%s",currentUser.name);
+    getchar();
+    gets(currentUser.name);
 
     printf("Enter your username :\n");
     scanf("%s",currentUser.userID);
@@ -411,6 +551,16 @@ void createUser()
 
     printf("Enter your Password(More than 8 Characters) :\n");
     gets(pass.flag);
+
+    for(int j=0;j<NoU;j++)//currentUser already inclue check 
+        {
+            if((strcmp(currentUser.userID,aUser[j].userID))==0){
+                printf("User ID already exist.\n pleace try another user Id...\n");
+                //createUser();
+                goto again;
+            }
+        }
+
 
     fseek(FileUserList,0L,SEEK_END); //0L meanas No offset orthad END thekei suru
     fwrite(&currentUser,sizeof(user),1,FileUserList);// UserID and name add file
@@ -421,6 +571,17 @@ void createUser()
    // userAloneFile=fopen(userFileName,"r+b");
     fseek(userAloneFile,0L,SEEK_SET);
     fwrite(&pass,sizeof(temp),1,userAloneFile);
+
+    cp.u=currentUser;
+    cp.accuracy=100.0;
+    cp.wpm=00;
+    time_t t;
+    t=time(NULL);
+    struct tm *date=localtime(&t);
+    cp.datTime=*date;
+    cp.lessonName=cl;
+    fwrite(&cp,sizeof(session),1,userAloneFile);
+
     fclose(userAloneFile);
     userAloneFile=fopen(userFileName,"r+b");
     //printf("\n\n\n\nUser file created\n press any key to continue...");
@@ -430,7 +591,7 @@ void createUser()
      login();///aber login kore add hoibe
 }
 
-int lisrUser()
+int listUser()
 {
     int i=0;
     char userfilename[100];
@@ -447,9 +608,10 @@ int lisrUser()
         fread(&currentUser,sizeof(user),1,FileUserList);
         printf("\n(%d) %s",i,currentUser.name);
     }
-    printf("\nSelect a user (please type the name): ");
-	scanf(" %s",currentUser.name);
-	sprintf(userfilename,"%s.dat",currentUser.name);
+    printf("\n\n");
+    /*printf("\nSelect a user (please type the Username): ");
+	scanf(" %s",currentUser.userID);
+	sprintf(userfilename,"%s.dat",currentUser.userID);
     if((userAloneFile=fopen(userfilename,"r+b"))==NULL)
     {
         printf("\n\nInvalid filename\n");
@@ -460,6 +622,7 @@ int lisrUser()
     printf("\nSuccess!!\n");
     printf(" press any key to continue...");
 	getch();
+    */
 	return 0;
 }
 
@@ -472,7 +635,8 @@ void userSelectMenu()
     int c,extended,option=0;
     //printf("\n\r%26s%c T Y P I N G  T E S T E R %c","",16,17);
     printf("\n\n(1)LogIn.\n");
-    printf("(2)SingUp.\n\n");
+    printf("(2)SingUp.\n");
+    printf("(3)User List\n\n");
     printf("Enter your choice: ");
      scanf("%d", &option);
      switch(option){
@@ -482,11 +646,101 @@ void userSelectMenu()
         case 2:
         createUser();
         break;
+        case 3:
+        listUser();
+        sleep(7);
+        userSelectMenu();
+        break;
         default:
         printf("choice mismatch, Again try!!");
         userSelectMenu();
      }
 
+}
+
+void selectTestType(){
+    Level1:
+    printf("Select testing type:\n");
+    printf("(1)Selective lesson\n");
+    printf("(2)Random generate\n");
+    printf("(3)Fixed time.\n\n");
+
+    printf("Enter your choice: ");
+    int tm;
+    scanf("%d",&tm);
+    char text[100];
+    int stime;
+
+    switch(tm){
+        case 1:
+        listLesson();
+        sreenShowLesson();
+        beginSession();
+        break;
+        case 2: 
+        Level:
+        printf("Select type:\n");
+        printf("(1)Composed of lowercase letters.\n");
+        printf("(2)Composed of capital letters.\n");
+        printf("(3)Composed of digits.\n");
+        printf("(4)Composed of Mix Character.\n\n");
+
+         printf("Enter your choice: ");
+         int tm1;
+         scanf("%d",&tm1);
+         
+        switch(tm1){
+            case 1:
+            rand_Small(text,100);
+            typingTest(text,0); //0 flag value
+            break;
+            case 2:
+            rand_Capital(text,100);
+            typingTest(text,0);
+            break;
+            case 3:
+            rand_Number(text,30);
+            typingTest(text,0);
+            break;
+            case 4:
+            rand_string(text,100);
+            typingTest(text,0);
+            break;
+            default:
+            printf("Invalid choice. Please select a valid option.\n");
+            goto Level;
+        }
+        break; 
+        case 3:
+        Level2:
+        printf("Select type:\n");
+        printf("(1)Defined Time.\n");
+        printf("(2)User Selected time.\n");
+         printf("Enter your choice: ");
+         int tm2;
+         scanf("%d",&tm2);
+            switch(tm2){
+                case 1:
+                rand_string(text,200);
+                //counter(10);
+                typingTest(text,10);//define time 30 second
+                break;
+                case 2:
+                printf("Enter your selective time.(second)\n");
+                scanf("%d",&stime);
+                rand_string(text,500);
+                typingTest(text,stime);
+                break;
+                default:
+                printf("Invalid choice. Please select a valid option.\n");
+                goto Level2;
+            }
+        break;
+        default:
+        printf("Invalid choice. Please select a valid option.\n");
+        goto Level1;
+
+    }
 }
 
 void mainmenu()
@@ -508,15 +762,13 @@ void mainmenu()
 
         switch (choice) {
             case 1:
-                listLesson();
-                sreenShowLesson();
-                beginSession();
+                selectTestType();
                 break;
             case 2:
-               // viewInstructions();
+               ShowStaistics();
                 break;
             case 3:
-                //viewHighScores();
+                viewHighScores();
                 break;
             case 4:
                 break;
@@ -552,7 +804,7 @@ void userFileLoad()
     else{
         fread(&nusers,sizeof(int),1,FileUserList);
     }
-    if((fstat=fopen("stat.dat","rb"))==NULL)
+    /*if((fstat=fopen("stat.dat","rb"))==NULL)
     {
         fstat=fopen("stat.dat","wb");
         fclose(fstat);
@@ -560,6 +812,6 @@ void userFileLoad()
     else
     {
         fclose(fstat);
-    }
+    }*/
 
 }
