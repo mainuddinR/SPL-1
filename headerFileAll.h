@@ -16,11 +16,15 @@ typedef struct
 {
     char flag[20];
 }temp;
+typedef struct{
+    long int playTest;
+}NoTest;
 
 typedef struct 
 {
     char userID[20];
     double score;
+    
 }HighScore;
 
 

@@ -3,11 +3,13 @@ FILE *flesson;
 FILE *FileUserList; //user list
 FILE *userAloneFile;
 FILE *fscore;
+FILE *findex;
 int nusers;
 lesson cl;
 user currentUser;
 session cp; //current persion stat add;
 temp pass ;
+NoTest numberPlay;
 HighScore highScore;
 char *text;
 int count=0;
@@ -19,11 +21,11 @@ void initial()
 void fileload()
 {
 
-    if((fscore=fopen("allScore.dat","wb+"))==NULL)//if fine does not exist
-    {
-        printf("Score file not open\n");
+    // if((fscore=fopen("allScore.dat","wb+"))==NULL)//if fine does not exist
+    // {
+    //     printf("Score file not open\n");
 
-    }
+    // }
 
     lesson l;
     int n=4,i;
@@ -367,44 +369,100 @@ void beginSession()
     strcpy(highScore.userID,currentUser.userID);
     highScore.score=cp.accuracy*cp.wpm;
 
-    fseek(fscore,0L,SEEK_END) ;
-    fwrite(&highScore,sizeof(HighScore),1,fscore);
-    if(fscore==NULL) {
-         printf("Score File read complete %d",i);
-     }
+    
+    if((findex=fopen("numOplay.dat","rb"))==NULL){
+        findex=fopen("numOplay.dat","wb");
+        numberPlay.playTest=1;
+        fwrite(&numberPlay,sizeof(NoTest),1,findex);
+        fclose(findex);
+        findex=fopen("numOplay.dat","rb");
+        
+    }
+    else{
+        fread(&numberPlay,sizeof(NoTest),1,findex);
+        numberPlay.playTest++;
+        findex=fopen("numOplay.dat","wb");
+         fwrite(&numberPlay,sizeof(NoTest),1,findex);
+          fclose(findex);
+    }
+    
+    //fprintf(fscore,"%s%lf\n",highScore.userID,highScore.score);
 
-}
+     if((fscore=fopen("allScore.dat","rb+"))==NULL)//if fine does not exist
+    {
+    //     printf("\n\nFile dose not exist.\n Creating new file...\n");
+        fscore=fopen("allScore.dat","wb"); //then creat new file
+
+         fwrite(&highScore,sizeof(HighScore),1,fscore);
+          fclose(findex);
+        fscore=fopen("allScore.dat","rb+");
+
+    }
+    else{
+    
+        fseek(fscore,0L,SEEK_END);
+        fwrite(&highScore,sizeof(HighScore),1,fscore);
+        
+    }
+
+ }
 
 void viewHighScores()
 {
-
-    //fclose(fscore);
-    //fscore=fopen("allScore.dat","rb");
-    fseek(fscore,0,SEEK_SET);
-
-     HighScore HS[100] ;
-     HighScore tm;
-     int i=0;
-
-    while(1){
-        if((fread(&HS[i],sizeof(HighScore),1,fscore))==NULL)
-        {
-            break;
-        }
-
-        i++;
-    }
-     if(fscore==NULL) {
-         printf("Score File read complete %d\n",i);
+    
+    HighScore HS[100] ;
+     HighScore tm,tm1;
+     int user,i=0;
+     if((findex=fopen("numOplay.dat","rb+"))==NULL){
+        printf("File not read NumOplay\n\n");
      }
+    fseek(findex,0,SEEK_SET);
+    fread(&user,sizeof(int),1,findex);
+     
+    if((fscore=fopen("allScore.dat","rb+"))==NULL){
+        printf("File not read allscore\n\n");
+    }
+    fseek(fscore,0,SEEK_SET);
+   // fread(&user,sizeof(int),1,findex);
 
-   // fclose(fscore);
-   // double max=HS[0].score;
-    for(int j=0;j<=i;j++)
+   // printf("user:%d\n\n",user);
+
+
+     while(i<user){
+       
+        fread(&tm,sizeof(HighScore),1,fscore);
+        HS[i]=tm;
+        i++;
+
+        // char str[40];
+        // double s;
+        // if(fscanf(fscore,"%s",str)!=EOF){
+        //     printf("%s\n",str);
+        //     strcpy(HS[i].userID,str);
+        // }
+        // else{
+        //     printf("String break\n");
+        //     break;
+        // }
+        // if(fscanf(fscore,"%lf",s)!=EOF)
+        // {
+        //     printf(" %lf\n",s);
+        //      HS[i].score=s;
+        // }
+        // else{
+        //     break;
+        // }
+        
+     }
+      
+
+  // printf("I:%d\n",i);
+
+    for(int j=0;j<i;j++)
     {
         for(int k=0;k<j;k++)
         {
-            if(HS[j].score<HS[k].score)
+            if(HS[j].score>HS[k].score)
             {
                 tm=HS[j];
                 HS[j]=HS[k];
@@ -413,10 +471,13 @@ void viewHighScores()
         }
     }
 
-    printf("User ID       Score\n");
-    for(int j=0;j<=i;j++)
+    
+     printf("User ID       Score\n");
+    for(int j=0;j<user;j++)
     {
-        printf("%.20s    %lf \n",HS[j].userID,HS[i].score);
+        
+      printf("%.20s    %lf \n",HS[j].userID,HS[j].score);
+        
     }
     sleep(10);
 }

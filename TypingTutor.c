@@ -14,7 +14,7 @@ int main()
 {
      welcome();
     //mainmenu();
-    fileload();
+    //fileload();
     //initial();
     userFileLoad();
     //listLesson();
